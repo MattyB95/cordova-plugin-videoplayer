@@ -50,4 +50,14 @@ public class VideoPlayerUnitTest {
     public void stripFileProtocol_emptyStringReturnsEmpty() {
         assertEquals("", VideoPlayer.stripFileProtocol(""));
     }
+
+    @Test
+    public void stripFileProtocol_malformedFileUri_fallsBackToSubstring() {
+        // Unencoded space makes java.net.URI throw URISyntaxException;
+        // the fallback strips "file://" via substring instead.
+        assertEquals(
+                "/sdcard/Movies/my video.mp4",
+                VideoPlayer.stripFileProtocol("file:///sdcard/Movies/my video.mp4")
+        );
+    }
 }

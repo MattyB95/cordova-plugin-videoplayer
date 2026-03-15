@@ -49,7 +49,8 @@ public class VideoPlayerOnErrorTest {
 
     /**
      * onError() must not throw when dialog and callbackContext are null
-     * (i.e. when called before or after normal plugin lifecycle).
+     * (i.e. when called before or after normal plugin lifecycle), and must
+     * still release the MediaPlayer to free native resources.
      */
     @Test
     public void onError_nullDialogAndCallback_doesNotThrow() {
@@ -57,5 +58,7 @@ public class VideoPlayerOnErrorTest {
         MediaPlayer mockPlayer = mock(MediaPlayer.class);
 
         plugin.onError(mockPlayer, MediaPlayer.MEDIA_ERROR_SERVER_DIED, -1);
+
+        verify(mockPlayer).release();
     }
 }

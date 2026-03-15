@@ -14,13 +14,23 @@ cordova plugin add cordova-plugin-video-player
 
 ## Permissions
 
-To play videos from device storage, your app must declare the `READ_EXTERNAL_STORAGE` permission in its `AndroidManifest.xml` and request it at runtime on Android 6.0+ (API 23+):
+To play videos from device storage, your app must declare the appropriate storage/media permission in its `AndroidManifest.xml` and request it at runtime on Android 6.0+ (API 23+):
+
+- On **Android 12L and below** (API 23–32), use `READ_EXTERNAL_STORAGE`.
+- On **Android 13+** (API 33+), use `READ_MEDIA_VIDEO` for video files.
+
+A typical manifest might include:
 
 ```xml
+<!-- For API 23–32 -->
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<!-- For API 33+ -->
+<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 ```
 
-HTTP/HTTPS and bundled asset videos (`file:///android_asset/`) do not require this permission.
+HTTP/HTTPS and bundled asset videos (`file:///android_asset/`) do not require these permissions.
+
+> **Note:** On Android 10+ (API 29+), scoped storage can affect direct file-path access on external storage. Prefer using `content://` URIs from `MediaStore` where possible.
 
 
 # Using
@@ -82,7 +92,11 @@ VideoPlayer.play(
 
 **Videos played from device storage fail silently or crash.**
 
-Ensure your app has declared and requested the `READ_EXTERNAL_STORAGE` permission at runtime (Android 6.0+, API 23+). Without it, `setDataSource` will fail and the error callback will fire.
+Ensure your app has declared and requested the correct permission at runtime:
+- `READ_EXTERNAL_STORAGE` on Android 6.0–12L (API 23–32)
+- `READ_MEDIA_VIDEO` on Android 13+ (API 33+)
+
+Without the appropriate permission, `setDataSource` will fail and the error callback will fire.
 
 
 # Licence MIT

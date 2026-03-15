@@ -19,6 +19,8 @@ import android.view.WindowManager.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.VideoView;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaPlugin;
@@ -38,6 +40,8 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
     private Dialog dialog;
 
     private MediaPlayer player;
+
+    private final AtomicInteger playGeneration = new AtomicInteger(0);
 
     /**
      * Executes the request and returns PluginResult.
@@ -67,8 +71,15 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
 
             final String path = stripFileProtocol(fileUriStr);
 
-            // Create dialog in new thread
-            cordova.getActivity().runOnUiThread(() -> openVideoDialog(path, options));
+            // Increment generation so any previously posted (but not yet run) play runnables become stale.
+            final int generation = playGeneration.incrementAndGet();
+            cordova.getActivity().runOnUiThread(() -> {
+                if (generation != playGeneration.get()) {
+                    Log.v(LOG_TAG, "Ignoring stale play request (generation " + generation + ")");
+                    return;
+                }
+                openVideoDialog(path, options);
+            });
 
             // Don't return any result now
             PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -77,6 +88,8 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
 
             return true;
         } else if (action.equals("close")) {
+            // Invalidate any pending play runnables that have not yet executed.
+            playGeneration.incrementAndGet();
             if (dialog != null) {
                 if (player != null) {
                     try {
@@ -97,6 +110,7 @@ public class VideoPlayer extends CordovaPlugin implements OnCompletionListener, 
                 PluginResult result = new PluginResult(PluginResult.Status.OK);
                 result.setKeepCallback(false); // release status callback in JS side
                 callbackContext.sendPluginResult(result);
+                callbackContext = null;
             }
 
             return true;

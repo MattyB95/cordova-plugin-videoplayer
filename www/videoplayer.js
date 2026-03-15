@@ -1,5 +1,26 @@
 var exec = require("cordova/exec");
 
+// Polyfill for Object.assign for older Android WebViews that may not support it
+if (typeof Object.assign !== "function") {
+    Object.assign = function (target) {
+        if (target == null) {
+            throw new TypeError("Cannot convert undefined or null to object");
+        }
+        var to = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource != null) {
+                for (var key in nextSource) {
+                    if (Object.prototype.hasOwnProperty.call(nextSource, key)) {
+                        to[key] = nextSource[key];
+                    }
+                }
+            }
+        }
+        return to;
+    };
+}
+
 module.exports = {
 
     DEFAULT_OPTIONS: {
