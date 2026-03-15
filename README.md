@@ -1,16 +1,26 @@
 Video Player plugin for Cordova/PhoneGap
 ========================================
 
-A Cordova plugin that simply allows you to immediately play a video in fullscreen mode.
+A Cordova plugin that allows you to immediately play a video in fullscreen mode.
+
+> **Platform support:** Android only.
 
 
 # Installation
 
-This plugin use the Cordova CLI's plugin command. To install it to your application, simply execute the following (and replace variables).
-
 ```
 cordova plugin add cordova-plugin-video-player
 ```
+
+## Permissions
+
+To play videos from device storage, your app must declare the `READ_EXTERNAL_STORAGE` permission in its `AndroidManifest.xml` and request it at runtime on Android 6.0+ (API 23+):
+
+```xml
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+```
+
+HTTP/HTTPS and bundled asset videos (`file:///android_asset/`) do not require this permission.
 
 
 # Using
@@ -70,9 +80,9 @@ VideoPlayer.play(
 
 # Troubleshooting
 
-**When playing a video for the first time, everything works great. when calling .close() function the video closes great. 2nd time around, the .play() is called the same way as the first time. The video plays fine for the second time. Now when trying to close it before the video ends, the app fatally crash.**
+**Videos played from device storage fail silently or crash.**
 
-When the "completed" event gets fired, make sure you close the video in the "completed" event to clear that instance so that if you have another video they don't both play.
+Ensure your app has declared and requested the `READ_EXTERNAL_STORAGE` permission at runtime (Android 6.0+, API 23+). Without it, `setDataSource` will fail and the error callback will fire.
 
 
 # Licence MIT
